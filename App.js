@@ -12,6 +12,7 @@ import React from 'react';
 // import type {PropsWithChildren} from 'react';
 const Web3 = require('web3');
 import {
+  Alert,
   Button,
   SafeAreaView,
   Text,
@@ -28,14 +29,15 @@ function App() {
 
   const [trxn, setTrxn] = React.useState('');
   const [reciever, setReciever] = React.useState('');
+  const [status, setStatus] = React.useState(false);
+  const [pressed, setPressed] = React.useState(false);
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  async function Main(recieverAdd, value) {
+  async function SendTransaction(recieverAdd, value) {
     // Configuring the connection to an Ethereum node
-    const network = 'sepolia';
     const web3 = new Web3(
       new Web3.providers.HttpProvider(
         'https://sepolia.infura.io/v3/4c37afbbaa224d3fa8e4bb42c3116706',
@@ -100,14 +102,26 @@ function App() {
         .then(response => response.json())
         .then(data => {
           console.log('Success:', data);
+          let hash = data.result;
+          const id = setInterval(() => {
+            web3.eth.getTransactionReceipt(hash).then(res => {
+              console.log(res);
+              if (res !== null) {
+                setStatus(true);
+                clearInterval(id);
+              }
+            });
+          }, 1000);
         })
         .catch(error => {
           console.error('Error:', error);
+          Alert.alert('Failure', error);
         });
 
       // console.log(`Mined in block ${receipt.blockNumber}`);
     } catch (e) {
       console.log(e);
+      Alert.alert('Failure', e);
     }
   }
 
@@ -135,7 +149,7 @@ function App() {
           editable
           keyboardType="numeric"
           onChangeText={e => {
-            console.log('onChangeText');
+            setPressed(false);
             setTrxn(e);
           }}
           value={trxn}
@@ -160,7 +174,7 @@ function App() {
           editable
           keyboardType="default"
           onChangeText={e => {
-            console.log('onChangeText');
+            setPressed(false);
             setReciever(e);
           }}
           value={reciever}
@@ -179,13 +193,47 @@ function App() {
         }}>
         <Button
           onPress={() => {
-            Main(reciever, trxn);
-            console.log('onPress');
+            SendTransaction(reciever, trxn);
+            setPressed(true);
+            setStatus(false);
           }}
           title="Submit"
           color="#841584"
         />
       </View>
+      {pressed && (
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              fontSize: 20,
+            }}>
+            Transaction Status:{' '}
+          </Text>
+          {status ? (
+            <Text
+              style={{
+                color: 'green',
+                fontSize: 20,
+                fontWeight: 'bold',
+              }}>
+              Done
+            </Text>
+          ) : (
+            <Text
+              style={{
+                color: 'yellow',
+                fontSize: 20,
+                fontWeight: 'bold',
+              }}>
+              pending
+            </Text>
+          )}
+        </View>
+      )}
     </SafeAreaView>
   );
 }
