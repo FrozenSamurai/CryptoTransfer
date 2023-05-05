@@ -39,7 +39,7 @@ function App() {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  async function SendTransaction(recieverAdd, value) {
+  async function SendTransaction(recieverAdd: string, value: string) {
     // Configuring the connection to an Ethereum node
     //check if valid reciever address
     if (!recieverAdd.startsWith('0x')) {
@@ -147,7 +147,7 @@ function App() {
                 console.log('Success:', data);
                 let hash = data.result;
                 const id = setInterval(() => {
-                  web3.eth.getTransactionReceipt(hash).then(res => {
+                  web3.eth.getTransactionReceipt(hash).then((res: null) => {
                     console.log(res);
                     if (res !== null) {
                       Alert.alert(
@@ -175,29 +175,9 @@ function App() {
 
             // console.log(`Mined in block ${receipt.blockNumber}`);
           } catch (error) {
-            console.log(error);
-            Alert.alert('Failure: Contact Raj to fix', error.message, [
-              {
-                text: 'Contact Raj',
-                onPress: () => {
-                  Linking.openURL('tel:+91-9167126442');
-                },
-                style: 'cancel',
-              },
-            ]);
-          }
-        })
-        .catch(error => {
-          console.log(error);
-          setPressed(false);
-          setStatus(false);
-          if (
-            error.message.includes('insufficient funds for gas * price + value')
-          ) {
-            Alert.alert(
-              'Failure: Contact Raj to fix',
-              'Error: Insufficient funds for gas * price + value, Please Contact me at +91-9167126442',
-              [
+            if (error instanceof Error) {
+              console.log(error);
+              Alert.alert('Failure: Contact Raj to fix', error.message, [
                 {
                   text: 'Contact Raj',
                   onPress: () => {
@@ -205,21 +185,47 @@ function App() {
                   },
                   style: 'cancel',
                 },
-              ],
-            );
-          } else {
-            Alert.alert('Failure: Contact Raj to fix', error.message, [
-              {
-                text: 'Contact Raj',
-                onPress: () => {
-                  Linking.openURL('tel:+91-9167126442');
-                },
-                style: 'cancel',
-              },
-            ]);
+              ]);
+            }
           }
+        })
+        .catch((error: {message: string | string[] | undefined}) => {
+          if (error instanceof Error) {
+            console.log(error);
+            setPressed(false);
+            setStatus(false);
+            if (
+              error.message.includes(
+                'insufficient funds for gas * price + value',
+              )
+            ) {
+              Alert.alert(
+                'Failure: Contact Raj to fix',
+                'Error: Insufficient funds for gas * price + value, Please Contact me at +91-9167126442',
+                [
+                  {
+                    text: 'Contact Raj',
+                    onPress: () => {
+                      Linking.openURL('tel:+91-9167126442');
+                    },
+                    style: 'cancel',
+                  },
+                ],
+              );
+            } else {
+              Alert.alert('Failure: Contact Raj to fix', error.message, [
+                {
+                  text: 'Contact Raj',
+                  onPress: () => {
+                    Linking.openURL('tel:+91-9167126442');
+                  },
+                  style: 'cancel',
+                },
+              ]);
+            }
 
-          // Alert.alert('Failure: Contact Raj to fix', error);
+            // Alert.alert('Failure: Contact Raj to fix', error);
+          }
         });
     }
   }
