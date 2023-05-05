@@ -16,7 +16,6 @@ import {
   Button,
   Keyboard,
   Linking,
-  LogBox,
   SafeAreaView,
   Text,
   // StyleSheet,
